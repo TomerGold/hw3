@@ -279,7 +279,7 @@ MainControl &MainControl::operator+=(const Vote &current_vote) {
                 current_vote.list_of_states[i] != current_vote.voter.state()) {
                 if (i == 0 && current_vote.voter.voterType() == Judge) {
                     judge_votes[j] += DOUZ_PUA;
-                   // is_judge_voted_correctly = true; //now the vote is OK
+                    // is_judge_voted_correctly = true; //now the vote is OK
                 }
                 if (i == 0 && current_vote.voter.voterType() == Regular) {
                     regular_votes[j]++;
@@ -288,11 +288,11 @@ MainControl &MainControl::operator+=(const Vote &current_vote) {
                 }
                 if (i == 1) {
                     judge_votes[j] += SEMI_DOUZ_PUA;
-                   // is_judge_voted_correctly = true; //now the vote is OK
+                    // is_judge_voted_correctly = true; //now the vote is OK
                 }
                 if (i >= 2) {
                     judge_votes[j] += SEMI_DOUZ_PUA - i;
-                   // is_judge_voted_correctly = true; //now the vote is OK
+                    // is_judge_voted_correctly = true; //now the vote is OK
                 }
             }
         }

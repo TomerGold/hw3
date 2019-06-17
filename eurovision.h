@@ -113,7 +113,7 @@ class MainControl {
 
 public :
     explicit MainControl(int max_states = MAX_PARTICIPANTS,
-                         int max_len = MAX_LEN,int max_votes_init = MAX_VOTES);
+                         int max_len = MAX_LEN, int max_votes_init =MAX_VOTES);
 
     ~MainControl();
 
@@ -126,6 +126,7 @@ public :
     MainControl &operator+=(Participant &current_participant);
 
     MainControl &operator+=(const Vote &temp);
+
     MainControl &operator-=(Participant &temp);
 
     friend ostream &operator<<(ostream &os, const MainControl &temp);
