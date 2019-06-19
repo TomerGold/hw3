@@ -59,7 +59,7 @@ ostream &operator<<(ostream &os, Participant &participant) {
               << "]";
 }
 
-///End of Participant calss methods:
+///End of Participant class methods:
 
 ///Start of Voter class methods:
 
@@ -119,31 +119,24 @@ Vote::Vote(Voter &current_voter, string vote1, string vote2, string vote3,
 
 ///Start of MainControl class methods:
 
-///constructor function:
 MainControl::MainControl(int max_states, int max_len, int max_votes_init) {
     max_participants = max_states;
     max_votes = max_votes_init;
     max_song_len = max_len;
     states_counter = 0;
     phase = Registration;
-    regular_votes = new int[max_states];
+    participants = new VoteForParticipant *[max_states];
+
     for (int i = 0; i < max_states; ++i) {
-        regular_votes[i] = 0;
-    }
-    judge_votes = new int[max_states];
-    for (int i = 0; i < max_states; ++i) {
-        judge_votes[i] = 0;
-    }
-    list_of_participants = new Participant *[max_states];
-    for (int i = 0; i < max_states; ++i) {
-        list_of_participants[i] = nullptr;
+        participants[i] = nullptr;
     }
 }
 
 MainControl::~MainControl() {
-    delete[] list_of_participants;
-    delete[] regular_votes;
-    delete[] judge_votes;
+    for (int i = 0; i < states_counter; ++i) {
+        delete (participants[i]);
+    }
+    delete[] participants;
 }
 
 void MainControl::setPhase(Phase next_phase) {
@@ -152,11 +145,11 @@ void MainControl::setPhase(Phase next_phase) {
     }
     if (phase == Contest && next_phase == Voting) {
         phase = Voting;
-        sortStates(list_of_participants, states_counter);//alphabetic sort
+        sortParticipants();//alphabetic sort
     }
 }
 
-bool MainControl::legalParticipant(Participant temp_participant) {
+bool MainControl::legalParticipant(Participant &temp_participant) {
     if (temp_participant.state() == "" || temp_participant.song() == "" ||
         temp_participant.singer() == "") {
         return false;
@@ -169,7 +162,7 @@ bool MainControl::legalParticipant(Participant temp_participant) {
 
 bool MainControl::participate(string state_name) {
     for (int i = 0; i < states_counter; ++i) {
-        if (state_name == list_of_participants[i]->state()) {
+        if (state_name == participants[i]->participant->state()) {
             return true;
         }
     }
@@ -187,21 +180,22 @@ ostream &operator<<(ostream &os, const MainControl &eurovision) {
         os << "{" << endl;
         os << "Voting" << endl;
         for (int i = 0; i < eurovision.states_counter; ++i) {
-            os << eurovision.list_of_participants[i]->state() << " : " <<
-               "Regular(" << eurovision.regular_votes[i] << ") Judge(" <<
-               eurovision.judge_votes[i] << ")" << endl;
+            os << eurovision.participants[i]->participant->state() << " : " <<
+               "Regular(" << eurovision.participants[i]->regular_votes
+               << ") Judge(" << eurovision.participants[i]->judge_votes << ")"
+               << endl;
         }
         os << "}" << endl;
         return os;
     } else if (eurovision.phase == Registration) { //output for reg. phase
-        sortStates(eurovision.list_of_participants, eurovision.states_counter);
         os << "{" << endl;
+        eurovision.sortParticipants();
         os << "Registration" << endl;
         for (int i = 0; i < eurovision.states_counter; ++i) {
-            os << "[" << eurovision.list_of_participants[i]->state() << "/" <<
-               eurovision.list_of_participants[i]->song() << "/" <<
-               eurovision.list_of_participants[i]->timeLength() << "/" <<
-               eurovision.list_of_participants[i]->singer() << "]" << endl;
+            os << "[" << eurovision.participants[i]->participant->state() <<
+               "/" << eurovision.participants[i]->participant->song() << "/" <<
+               eurovision.participants[i]->participant->timeLength() << "/" <<
+               eurovision.participants[i]->participant->singer() << "]" << endl;
         }
         os << "}" << endl;
         return os;
@@ -224,9 +218,12 @@ MainControl &MainControl::operator+=(Participant &current_participant) {
     }
     states_counter++;
     for (int i = 0; i < states_counter; ++i) {
-        if (list_of_participants[i] == nullptr) {
-            list_of_participants[i] = &current_participant;
-            list_of_participants[i]->updateRegistered(true);
+        if (participants[i] == nullptr) {
+            participants[i] = new VoteForParticipant;
+            participants[i]->participant = &current_participant;
+            participants[i]->participant->updateRegistered(true);
+            participants[i]->judge_votes = 0;
+            participants[i]->regular_votes = 0;
         }
     }
     return *this;
@@ -239,24 +236,27 @@ MainControl &MainControl::operator-=(Participant &current_participant) {
     if (!participate(current_participant.state())) {
         return *this;
     }
-    //checks if the exact same par. (aka - also song +len and singer
+    //checks if it is the exact same par. (aka - also song len and singer)
     for (int i = 0; i < states_counter; ++i) {
-        if (current_participant.state() == list_of_participants[i]->state()) {
+        if (current_participant.state() ==
+            participants[i]->participant->state()) {
             if (current_participant.singer() !=
-                list_of_participants[i]->singer() ||
-                current_participant.song() != list_of_participants[i]->song()
+                participants[i]->participant->singer() ||
+                current_participant.song() !=
+                participants[i]->participant->song()
                 || current_participant.timeLength() !=
-                   list_of_participants[i]->timeLength()) {
+                   participants[i]->participant->timeLength()) {
                 return *this;
             }
         }
-    }//TODO CAN PARTICIPATE BY STATE BUT NOT BY SONG OR SINGER OR LEN - IS IT
-    // POSSIBLE?
+    }
     for (int i = 0; i < states_counter; ++i) {
-        if (current_participant.state() == list_of_participants[i]->state()) {
-            list_of_participants[i]->updateRegistered(false);
-            list_of_participants[i] = list_of_participants[states_counter - 1];
-            list_of_participants[states_counter - 1] = nullptr;
+        if (current_participant.state() ==
+            participants[i]->participant->state()) {
+            participants[i]->participant->updateRegistered(false);
+            delete participants[i]; //delete the struct but not the participant
+            participants[i] = participants[states_counter - 1];
+            participants[states_counter - 1] = nullptr;
             break;
         }
     }
@@ -265,59 +265,60 @@ MainControl &MainControl::operator-=(Participant &current_participant) {
 }
 
 MainControl &MainControl::operator+=(const Vote &current_vote) {
-    //bool is_judge_voted_correctly = false;
+    bool is_judge_voted_correctly = false;
     if (!isVoteLegal(*this, current_vote, max_votes)) {
         return *this;
     }
     for (int i = 0; i < MAX_NUM_OF_STATES; ++i) {
         if (current_vote.list_of_states[i] == "") { //end of judge's votes
-            break;
+            continue;
         }
         for (int j = 0; j < states_counter; ++j) {
             if (current_vote.list_of_states[i] ==
-                list_of_participants[j]->state() &&
+                participants[j]->participant->state() &&
                 current_vote.list_of_states[i] != current_vote.voter.state()) {
                 if (i == 0 && current_vote.voter.voterType() == Judge) {
-                    judge_votes[j] += DOUZ_PUA;
-                    // is_judge_voted_correctly = true; //now the vote is OK
+                    participants[j]->judge_votes += DOUZ_PUA;
+                    is_judge_voted_correctly = true; //now the vote is OK
                 }
                 if (i == 0 && current_vote.voter.voterType() == Regular) {
-                    regular_votes[j]++;
+                    participants[j]->regular_votes++;
                     ++current_vote.voter; //for regular voter only
                     return *this;
                 }
                 if (i == 1) {
-                    judge_votes[j] += SEMI_DOUZ_PUA;
-                    // is_judge_voted_correctly = true; //now the vote is OK
+                    participants[j]->judge_votes += SEMI_DOUZ_PUA;
+                    is_judge_voted_correctly = true; //now the vote is OK
                 }
                 if (i >= 2) {
-                    judge_votes[j] += SEMI_DOUZ_PUA - i;
-                    // is_judge_voted_correctly = true; //now the vote is OK
+                    participants[j]->judge_votes += SEMI_DOUZ_PUA - i;
+                    is_judge_voted_correctly = true; //now the vote is OK
                 }
             }
         }
     }
-    //if (is_judge_voted_correctly) { // check if judge voted ok even once
-    // TODO IF ALL OF JUDGES VOTES ARE BAD
-    // DOES IT COUNT???? SAME FOR REGULAR BUT WITH ONE VOTE??
-    ++current_vote.voter; // for judge voter only;
-
+    if (is_judge_voted_correctly) { // check if judge voted ok even once
+        ++current_vote.voter; // for judge voter only;
+    }
     return *this;
 }
 
 //this function sorts Participants alphabetically
-void sortStates(Participant **list, int states_counter) {
+void MainControl::sortParticipants() const {
     // Sorting Participants in list using bubble sort
     for (int j = 0; j < states_counter - 1; j++) {
         for (int i = j + 1; i < states_counter; i++) {
-            if (list[j]->state() > list[i]->state()) {
-                Participant *temp = list[j];
-                list[j] = list[i];
-                list[i] = temp;
+            if (participants[j]->participant->state() >
+                participants[i]->participant->state()) {
+                MainControl::VoteForParticipant *temp = participants[j];
+                participants[j] = participants[i];
+                participants[i] = temp;
             }
         }
     }
 }
+
+///End of MainControl class method
 
 //this function checks if the vote is legal according to the criteria
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
@@ -326,8 +327,7 @@ max_votes) {
         return false; // checks if voters country participates
     }
     if (current_vote.voter.voterType() == Regular) { //checks for regular only
-        if (current_vote.voter.state() == current_vote
-                .list_of_states[FIRST]) {
+        if (current_vote.voter.state() == current_vote.list_of_states[FIRST]) {
             return false;
         }
         if (!eurovision.participate(current_vote.list_of_states[FIRST])) {
@@ -335,9 +335,6 @@ max_votes) {
         }
         if (current_vote.voter.timesOfVotes() >= max_votes) {
             return false;
-        }
-        if (current_vote.list_of_states[SECOND] != "") {
-            return false; //checks if regular voted more than one
         }
     }
     if (current_vote.voter.voterType() == Judge &&

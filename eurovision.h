@@ -41,7 +41,13 @@ public :
     explicit Participant(string state, string song, int len,
                          string singer);
 
+    Participant()= delete;
+
     ~Participant() = default;
+
+     Participant(Participant& participant) = delete;
+
+     Participant& operator=(Participant& participant) = delete;
 
     const string state() const;
 
@@ -107,19 +113,25 @@ class MainControl {
     int max_votes;
     int states_counter; // holds how many states are registered in any time
     Phase phase;
-    Participant **list_of_participants; //holds all of registered Par.
-    int *regular_votes; //holds all of the regular votes for each state
-    int *judge_votes; //holds all of the judge's votes for each state
+    struct VoteForParticipant { //holds the votes for each Participant
+        Participant *participant;
+        int regular_votes;
+        int judge_votes;
+    };
+    VoteForParticipant **participants;
+
+    //this function sorts Participants alphabetically
+     void sortParticipants() const;
 
 public :
     explicit MainControl(int max_states = MAX_PARTICIPANTS,
-                         int max_len = MAX_LEN, int max_votes_init =MAX_VOTES);
+                         int max_len = MAX_LEN, int max_votes_init = MAX_VOTES);
 
     ~MainControl();
 
     void setPhase(Phase next_phase);
 
-    bool legalParticipant(Participant temp_participant);
+    bool legalParticipant(Participant &temp_participant);
 
     bool participate(string state_name);
 
@@ -132,9 +144,6 @@ public :
     friend ostream &operator<<(ostream &os, const MainControl &temp);
 
 };
-
-//this function sorts Participants alphabetically
-void sortStates(Participant **list, int states_counter);
 
 //this function checks if the vote is legal according to the criteria
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
