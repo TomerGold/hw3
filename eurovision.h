@@ -149,8 +149,6 @@ public :
 
     friend ostream &operator<<(ostream &os, const MainControl &temp);
 
-    friend ostream &operator<<(ostream &os, VoteForParticipant &vote);
-
     class Iterator;
 
     Iterator begin() const;
@@ -158,7 +156,9 @@ public :
     Iterator end() const;
 
     friend bool isBigger(VoteForParticipant vote1, VoteForParticipant vote2,
-                         VoterType voter_type);
+                         VoterType voter_type); //TODO friend
+
+    friend ostream &operator<<(ostream &os, VoteForParticipant &vote);
 
 
 };
@@ -166,7 +166,6 @@ public :
 //this function checks if the vote is legal according to the criteria
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
 max_votes);
-
 
 ///Iterator class:
 
@@ -178,12 +177,11 @@ class MainControl::Iterator {
 public:
 
     explicit Iterator(const MainControl *mainControl = nullptr,
-                      int index = 0); //TODO according to pres. supposed to
-    // be private! copy cons? defult dest?
+                      int index = 0); //TODO according to pres. supposed to be private! copy cons? defult dest?
 
     ~Iterator() = default;
 
-    Iterator& operator=(const Iterator& iterator) = default;
+    Iterator &operator=(const Iterator &iterator) = default;
 
     VoteForParticipant &operator*();
 
@@ -197,18 +195,18 @@ public:
 
     int operator-(const Iterator &i2) const;
 
+
 };
 
 
 template<typename T>
-T get(const T start, const T end, int i,
-      VoterType voter_type) { //TODO should this be VoterType or another typename?
+T get(const T start, const T end, int i, VoterType voter_type) {
 
     if (i < 1 || i > end - start) {
         return end;
     }
     T matching_participant = start;
-    T* already_won = new T[i];
+    T *already_won = new T[i];
     for (int iteration_counter = 1;
          iteration_counter <= i; iteration_counter++) {
         for (T current = start; current < end; ++current) {
@@ -219,8 +217,8 @@ T get(const T start, const T end, int i,
                 continue;
             }
             if (isBigger(*current, *matching_participant,
-                            voter_type)) {
-                matching_participant = current; //TODO check if iterator default assignment works.
+                         voter_type)) {
+                matching_participant = current;
             }
         }
         already_won[iteration_counter - 1] = matching_participant;
@@ -232,16 +230,17 @@ T get(const T start, const T end, int i,
     return matching_participant;
 }
 
-template <typename T>
-bool find(T* array, T iterator_to_find, int size){
+template<typename T>
+bool find(T *array, T iterator_to_find, int size) {
     for (int i = 0; i < size; ++i) {
-        if(array[i] == iterator_to_find){
+        if (array[i] == iterator_to_find) {
             return true;
         }
     }
     return false;
 
 }
+
 
 
 // -----------------------------------------------------------

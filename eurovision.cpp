@@ -349,11 +349,14 @@ MainControl::Iterator &MainControl::Iterator::operator++() {
     return *this;
 }
 
+/*
+MainControl::Iterator& MainControl::Iterator::operator=(
+        const MainControl::Iterator &iterator) {
+
+}
+*/
 bool MainControl::Iterator::operator==(const Iterator &iterator) const {
-    if(index >= iterator.mainControl->states_counter){
-        return true;
-    }
-    if(index == iterator.index && (&mainControl) == &(iterator.mainControl)){
+    if (((mainControl) == (iterator.mainControl)) && (index == iterator.index)){
         return true;
     }
     return false;
@@ -443,6 +446,6 @@ bool isBigger(
             return vote1.participant->state() > vote2.participant->state();
         }
     }
+    return false;
 }
-
 
