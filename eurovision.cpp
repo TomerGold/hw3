@@ -348,6 +348,7 @@ MainControl::Iterator &MainControl::Iterator::operator++() {
     ++index;
     return *this;
 }
+
 /*
 MainControl::Iterator& MainControl::Iterator::operator=(
         const MainControl::Iterator &iterator) {
@@ -404,6 +405,9 @@ ostream &operator<<(ostream &os, MainControl::VoteForParticipant &vote) {
 const string MainControl::operator()(int i, VoterType voter_type) const {
     MainControl::Iterator iterator = get(this->begin(), this->end(), i,
                                          voter_type);
+    if(i > states_counter){
+        return "";
+    }
     MainControl::VoteForParticipant current = *iterator;
     return current.participant->state();
 }
@@ -439,6 +443,12 @@ bool isBigger(
             return vote1.participant->state() > vote2.participant->state();
         }
     }
+    return false;
 }
 
-
+bool isSame(MainControl::Iterator i1, MainControl::Iterator i2) {
+    if (&(i1.mainControl) == &(i2.mainControl) && i1.index == i2.index){
+        return true;
+    }
+    return false;
+}
