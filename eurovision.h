@@ -4,18 +4,19 @@
 #define MAX_LEN 180
 #define MAX_VOTES 5
 #define MAX_NUM_OF_STATES 10
-#define DOUZ_PUA 12
-#define SEMI_DOUZ_PUA 10
+#define DOUZE_PUA 12
+#define SEMI_DOUZE_PUA 10
 #define FIRST 0
-#define SECOND 1
 
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 using std::string;
 using std::ostream;
 using std::endl;
+using std::vector;
 
 // it's allowed to define here any using statements, according to needs.
 // do NOT define here : using namespace std;
@@ -41,13 +42,13 @@ public :
     explicit Participant(string state, string song, int len,
                          string singer);
 
-    Participant()= delete;
+    Participant() = delete;
 
     ~Participant() = default;
 
-     Participant(Participant& participant) = delete;
+    Participant(Participant &participant) = delete;
 
-     Participant& operator=(Participant& participant) = delete;
+    Participant &operator=(Participant &participant) = delete;
 
     const string state() const;
 
@@ -113,17 +114,20 @@ class MainControl {
     int max_votes;
     int states_counter; // holds how many states are registered in any time
     Phase phase;
+
     struct VoteForParticipant { //holds the votes for each Participant
         Participant *participant;
         int regular_votes;
         int judge_votes;
     };
+
     VoteForParticipant **participants;
 
     //this function sorts Participants alphabetically
-     void sortParticipants() const;
+    void sortParticipants() const;
 
 public :
+
     explicit MainControl(int max_states = MAX_PARTICIPANTS,
                          int max_len = MAX_LEN, int max_votes_init = MAX_VOTES);
 
@@ -143,11 +147,101 @@ public :
 
     friend ostream &operator<<(ostream &os, const MainControl &temp);
 
+    class Iterator;
+
+    Iterator begin() const;
+
+    Iterator end() const;
+
 };
 
 //this function checks if the vote is legal according to the criteria
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
 max_votes);
+
+///Iterator class:
+
+class MainControl::Iterator {
+    const MainControl *mainControl;
+    int index;
+    //friend class MainControl;
+
+public:
+
+    explicit Iterator(const MainControl *mainControl = nullptr,
+                      int index = 0); //TODO according to pres. supposed to
+    // be private! copy cons? defult dest?
+
+
+    Participant &operator*();
+
+    Iterator &operator++();
+
+    bool operator==(const Iterator &iterator) const;
+
+    bool operator!=(const Iterator &iterator) const;
+
+    bool operator<(const Iterator &iterator) const;
+
+};
+
+/*
+template<typename T>
+T get(const T begin, const T end, int i) {
+    T best_participant = begin();
+    end = end();
+    if (i == 1) {
+        for (begin = begin(); begin != end(); ++begin) {
+            if (begin > best_participant) {
+                best_participant = begin;
+            }
+        }
+        return begin;
+
+    } else { //asking for more than 1
+        best_participant = begin();
+        int wanted_num_of_participants = 0;
+        vector<string> already_won(i - 1, "");
+        for (; wanted_num_of_participants <= i; wanted_num_of_participants++) {
+            if (wanted_num_of_participants == 0) {
+                for (begin = begin(); begin != end(); ++begin) {
+                    if (begin > best_participant) {
+                        best_participant = begin;
+                    }
+                }
+                already_won.push_back(*best_participant.state());
+                best_participant == begin();
+                continue;
+            } else {
+                bool already_counted = false;
+                for (begin = begin(); begin != end(); ++begin) {
+                    if (begin > best_participant) {
+                        for (int j = 0; j < already_won.size(); j++) {
+                            if (*begin.state() == already_won[j]) {
+                                already_counted = true;
+                                break;
+                            }
+                            if (!already_counted) {
+                                best_participant = begin;
+                            }
+
+                        }
+                    }
+
+                }
+            }
+        }
+
+        vector<string>
+        eurovision(int
+        i, VoterType
+        voter_type) //eurovision function
+
+
+
+*/
+
+
 
 // -----------------------------------------------------------
 

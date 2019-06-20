@@ -278,7 +278,7 @@ MainControl &MainControl::operator+=(const Vote &current_vote) {
                 participants[j]->participant->state() &&
                 current_vote.list_of_states[i] != current_vote.voter.state()) {
                 if (i == 0 && current_vote.voter.voterType() == Judge) {
-                    participants[j]->judge_votes += DOUZ_PUA;
+                    participants[j]->judge_votes += DOUZE_PUA;
                     is_judge_voted_correctly = true; //now the vote is OK
                 }
                 if (i == 0 && current_vote.voter.voterType() == Regular) {
@@ -287,11 +287,11 @@ MainControl &MainControl::operator+=(const Vote &current_vote) {
                     return *this;
                 }
                 if (i == 1) {
-                    participants[j]->judge_votes += SEMI_DOUZ_PUA;
+                    participants[j]->judge_votes += SEMI_DOUZE_PUA;
                     is_judge_voted_correctly = true; //now the vote is OK
                 }
                 if (i >= 2) {
-                    participants[j]->judge_votes += SEMI_DOUZ_PUA - i;
+                    participants[j]->judge_votes += SEMI_DOUZE_PUA - i;
                     is_judge_voted_correctly = true; //now the vote is OK
                 }
             }
@@ -319,6 +319,42 @@ void MainControl::sortParticipants() const {
 }
 
 ///End of MainControl class method
+
+///Start of MainControl::Iterator  methods
+
+MainControl::Iterator::Iterator(const MainControl *mainControl, int index) :
+        mainControl(mainControl),
+        index(index) {
+}
+
+MainControl::Iterator MainControl::begin() const {
+    return MainControl::Iterator(this, 0);
+}
+
+MainControl::Iterator MainControl::end() const {
+    return MainControl::Iterator(this, states_counter);
+}
+
+Participant &MainControl::Iterator::operator*() {
+    return *mainControl->participants[index]->participant;
+}
+
+MainControl::Iterator &MainControl::Iterator::operator++() {
+    ++index;
+    return *this;
+}
+
+bool MainControl::Iterator::operator==(const Iterator &iterator) const {
+    return (index == iterator.index);
+}
+
+bool MainControl::Iterator::operator!=(const Iterator &iterator) const {
+    return !(*this == iterator);
+}
+
+bool MainControl::Iterator::operator<(const Iterator &iterator) const {
+    return (index < iterator.index);
+}
 
 //this function checks if the vote is legal according to the criteria
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
