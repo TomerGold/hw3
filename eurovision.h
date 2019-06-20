@@ -167,9 +167,6 @@ public :
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
 max_votes);
 
-bool isBigger(
-        MainControl::VoteForParticipant vote1,
-        MainControl::VoteForParticipant vote2, VoterType voter_type);
 
 ///Iterator class:
 
@@ -214,7 +211,7 @@ T get(const T start, const T end, int i,
     T* already_won = new T[i];
     for (int iteration_counter = 1;
          iteration_counter <= i; iteration_counter++) {
-        for (T current = start; current != end; ++current) {
+        for (T current = start; current < end; ++current) {
             if (find(already_won, matching_participant, i)) {
                 ++matching_participant;
             }
@@ -226,7 +223,7 @@ T get(const T start, const T end, int i,
                 matching_participant = current; //TODO check if iterator default assignment works.
             }
         }
-        already_won[iteration_counter] = matching_participant;
+        already_won[iteration_counter - 1] = matching_participant;
         if (iteration_counter != i) {
             matching_participant = start;
         }
@@ -245,7 +242,6 @@ bool find(T* array, T iterator_to_find, int size){
     return false;
 
 }
-
 
 
 // -----------------------------------------------------------

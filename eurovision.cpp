@@ -348,14 +348,15 @@ MainControl::Iterator &MainControl::Iterator::operator++() {
     ++index;
     return *this;
 }
-/*
-MainControl::Iterator& MainControl::Iterator::operator=(
-        const MainControl::Iterator &iterator) {
 
-}
-*/
 bool MainControl::Iterator::operator==(const Iterator &iterator) const {
-    return (index == iterator.index);
+    if(index >= iterator.mainControl->states_counter){
+        return true;
+    }
+    if(index == iterator.index && (&mainControl) == &(iterator.mainControl)){
+        return true;
+    }
+    return false;
 }
 
 bool MainControl::Iterator::operator!=(const Iterator &iterator) const {
@@ -404,6 +405,9 @@ ostream &operator<<(ostream &os, MainControl::VoteForParticipant &vote) {
 const string MainControl::operator()(int i, VoterType voter_type) const {
     MainControl::Iterator iterator = get(this->begin(), this->end(), i,
                                          voter_type);
+    if(i > states_counter){
+        return "";
+    }
     MainControl::VoteForParticipant current = *iterator;
     return current.participant->state();
 }
