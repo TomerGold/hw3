@@ -335,15 +335,25 @@ MainControl::Iterator MainControl::end() const {
     return MainControl::Iterator(this, states_counter);
 }
 
+/*
 Participant &MainControl::Iterator::operator*() {
     return *mainControl->participants[index]->participant;
+}
+*/
+MainControl::VoteForParticipant &MainControl::Iterator::operator*() {
+    return *mainControl->participants[index];
 }
 
 MainControl::Iterator &MainControl::Iterator::operator++() {
     ++index;
     return *this;
 }
+/*
+MainControl::Iterator& MainControl::Iterator::operator=(
+        const MainControl::Iterator &iterator) {
 
+}
+*/
 bool MainControl::Iterator::operator==(const Iterator &iterator) const {
     return (index == iterator.index);
 }
@@ -354,6 +364,10 @@ bool MainControl::Iterator::operator!=(const Iterator &iterator) const {
 
 bool MainControl::Iterator::operator<(const Iterator &iterator) const {
     return (index < iterator.index);
+}
+
+int MainControl::Iterator::operator-(const Iterator &i2) const {
+    return this->index - i2.index;
 }
 
 //this function checks if the vote is legal according to the criteria
@@ -380,8 +394,51 @@ max_votes) {
     return true;
 }
 
+ostream &operator<<(ostream &os, MainControl::VoteForParticipant &vote) {
+    return os << "[" << vote.participant->state() << "/" <<
+              vote.participant->song() << "/" << vote.participant->timeLength()
+              << "/" << vote.participant->singer() << "]";
+    //TODO right now this is code duplication...we should ask if there is a better way to do this.
+}
 
+const string MainControl::operator()(int i, VoterType voter_type) const {
+    MainControl::Iterator iterator = get(this->begin(), this->end(), i,
+                                         voter_type);
+    MainControl::VoteForParticipant current = *iterator;
+    return current.participant->state();
+}
 
+bool isBigger(
+        MainControl::VoteForParticipant vote1,
+        MainControl::VoteForParticipant vote2, VoterType voter_type) {
+    if (voter_type == Regular) {
+        if (vote1.regular_votes > vote2.regular_votes) {
+            return true;
+        }
+        if (vote1.regular_votes == vote2.regular_votes) {
+            return vote1.participant->state() > vote2.participant->state();
+        }
+    }
 
+    if (voter_type == Judge) {
+        if (vote1.judge_votes > vote2.judge_votes) {
+            return true;
+        }
+        if (vote1.judge_votes == vote2.judge_votes) {
+            return vote1.participant->state() > vote2.participant->state();
+        }
+    }
+
+    if (voter_type == All) {
+        if (vote1.regular_votes + vote1.judge_votes >
+            vote2.regular_votes + vote2.judge_votes) {
+            return true;
+        }
+        if (vote1.regular_votes + vote1.judge_votes ==
+            vote2.regular_votes + vote2.judge_votes) {
+            return vote1.participant->state() > vote2.participant->state();
+        }
+    }
+}
 
 

@@ -11,12 +11,12 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
+
 
 using std::string;
 using std::ostream;
 using std::endl;
-using std::vector;
+
 
 // it's allowed to define here any using statements, according to needs.
 // do NOT define here : using namespace std;
@@ -145,7 +145,11 @@ public :
 
     MainControl &operator-=(Participant &temp);
 
+    const string operator()(int i, VoterType voter_type) const;
+
     friend ostream &operator<<(ostream &os, const MainControl &temp);
+
+    friend ostream &operator<<(ostream &os, VoteForParticipant &vote);
 
     class Iterator;
 
@@ -153,11 +157,19 @@ public :
 
     Iterator end() const;
 
+    friend bool isBigger(VoteForParticipant vote1, VoteForParticipant vote2,
+                         VoterType voter_type);
+
+
 };
 
 //this function checks if the vote is legal according to the criteria
 bool isVoteLegal(MainControl &eurovision, const Vote &current_vote, int
 max_votes);
+
+bool isBigger(
+        MainControl::VoteForParticipant vote1,
+        MainControl::VoteForParticipant vote2, VoterType voter_type);
 
 ///Iterator class:
 
@@ -172,8 +184,11 @@ public:
                       int index = 0); //TODO according to pres. supposed to
     // be private! copy cons? defult dest?
 
+    ~Iterator() = default;
 
-    Participant &operator*();
+    Iterator& operator=(const Iterator& iterator) = default;
+
+    VoteForParticipant &operator*();
 
     Iterator &operator++();
 
@@ -183,63 +198,53 @@ public:
 
     bool operator<(const Iterator &iterator) const;
 
+    int operator-(const Iterator &i2) const;
+
 };
 
-/*
+
 template<typename T>
-T get(const T begin, const T end, int i) {
-    T best_participant = begin();
-    end = end();
-    if (i == 1) {
-        for (begin = begin(); begin != end(); ++begin) {
-            if (begin > best_participant) {
-                best_participant = begin;
-            }
-        }
-        return begin;
+T get(const T start, const T end, int i,
+      VoterType voter_type) { //TODO should this be VoterType or another typename?
 
-    } else { //asking for more than 1
-        best_participant = begin();
-        int wanted_num_of_participants = 0;
-        vector<string> already_won(i - 1, "");
-        for (; wanted_num_of_participants <= i; wanted_num_of_participants++) {
-            if (wanted_num_of_participants == 0) {
-                for (begin = begin(); begin != end(); ++begin) {
-                    if (begin > best_participant) {
-                        best_participant = begin;
-                    }
-                }
-                already_won.push_back(*best_participant.state());
-                best_participant == begin();
+    if (i < 1 || i > end - start) {
+        return end;
+    }
+    T matching_participant = start;
+    T* already_won = new T[i];
+    for (int iteration_counter = 1;
+         iteration_counter <= i; iteration_counter++) {
+        for (T current = start; current != end; ++current) {
+            if (find(already_won, matching_participant, i)) {
+                ++matching_participant;
+            }
+            if (find(already_won, current, i)) {
                 continue;
-            } else {
-                bool already_counted = false;
-                for (begin = begin(); begin != end(); ++begin) {
-                    if (begin > best_participant) {
-                        for (int j = 0; j < already_won.size(); j++) {
-                            if (*begin.state() == already_won[j]) {
-                                already_counted = true;
-                                break;
-                            }
-                            if (!already_counted) {
-                                best_participant = begin;
-                            }
-
-                        }
-                    }
-
-                }
+            }
+            if (isBigger(*current, *matching_participant,
+                            voter_type)) {
+                matching_participant = current; //TODO check if iterator default assignment works.
             }
         }
+        already_won[iteration_counter] = matching_participant;
+        if (iteration_counter != i) {
+            matching_participant = start;
+        }
+    }
+    delete[] already_won;
+    return matching_participant;
+}
 
-        vector<string>
-        eurovision(int
-        i, VoterType
-        voter_type) //eurovision function
+template <typename T>
+bool find(T* array, T iterator_to_find, int size){
+    for (int i = 0; i < size; ++i) {
+        if(array[i] == iterator_to_find){
+            return true;
+        }
+    }
+    return false;
 
-
-
-*/
+}
 
 
 
