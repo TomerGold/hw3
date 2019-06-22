@@ -119,7 +119,7 @@ Vote::Vote(Voter &current_voter, string vote1, string vote2, string vote3,
 
 ///Start of MainControl class methods:
 
-MainControl::MainControl(int max_states, int max_len, int max_votes_init) {
+MainControl::MainControl(int max_len, int max_states, int max_votes_init) {
     max_participants = max_states;
     max_votes = max_votes_init;
     max_song_len = max_len;
@@ -303,6 +303,16 @@ MainControl &MainControl::operator+=(const Vote &current_vote) {
     return *this;
 }
 
+const string MainControl::operator()(int i, VoterType voter_type) const {
+    MainControl::Iterator iterator = get(this->begin(), this->end(), i,
+                                         voter_type);
+    if (i > states_counter || i < 1) { // unusable i
+        return "";
+    }
+    MainControl::VoteForParticipant current = *iterator;
+    return current.participant->state();
+}
+
 //this function sorts Participants alphabetically
 void MainControl::sortParticipants() const {
     // Sorting Participants in list using bubble sort
@@ -318,6 +328,13 @@ void MainControl::sortParticipants() const {
     }
 }
 
+ostream &operator<<(ostream &os, MainControl::VoteForParticipant &vote) {
+    return os << "[" << vote.participant->state() << "/" <<
+              vote.participant->song() << "/" << vote.participant->timeLength()
+              << "/" << vote.participant->singer() << "]";
+    //TODO right now this is code duplication...we should ask if there is a better way to do this.
+}
+
 ///End of MainControl class method
 
 ///Start of MainControl::Iterator  methods
@@ -328,18 +345,15 @@ MainControl::Iterator::Iterator(const MainControl *mainControl, int index) :
 }
 
 MainControl::Iterator MainControl::begin() const {
+    this->sortParticipants();
     return MainControl::Iterator(this, 0);
 }
 
 MainControl::Iterator MainControl::end() const {
+    this->sortParticipants();
     return MainControl::Iterator(this, states_counter);
 }
 
-/*
-Participant &MainControl::Iterator::operator*() {
-    return *mainControl->participants[index]->participant;
-}
-*/
 MainControl::VoteForParticipant &MainControl::Iterator::operator*() {
     return *mainControl->participants[index];
 }
@@ -349,14 +363,9 @@ MainControl::Iterator &MainControl::Iterator::operator++() {
     return *this;
 }
 
-/*
-MainControl::Iterator& MainControl::Iterator::operator=(
-        const MainControl::Iterator &iterator) {
-
-}
-*/
 bool MainControl::Iterator::operator==(const Iterator &iterator) const {
-    if (((mainControl) == (iterator.mainControl)) && (index == iterator.index)){
+    if (((mainControl) == (iterator.mainControl)) && (index == iterator
+            .index)) { //Todo what is ==  to main control? how does it works?
         return true;
     }
     return false;
@@ -371,7 +380,7 @@ bool MainControl::Iterator::operator<(const Iterator &iterator) const {
 }
 
 int MainControl::Iterator::operator-(const Iterator &i2) const {
-    return this->index - i2.index;
+    return (this->index - i2.index);
 }
 
 //this function checks if the vote is legal according to the criteria
@@ -398,24 +407,8 @@ max_votes) {
     return true;
 }
 
-ostream &operator<<(ostream &os, MainControl::VoteForParticipant &vote) {
-    return os << "[" << vote.participant->state() << "/" <<
-              vote.participant->song() << "/" << vote.participant->timeLength()
-              << "/" << vote.participant->singer() << "]";
-    //TODO right now this is code duplication...we should ask if there is a better way to do this.
-}
-
-const string MainControl::operator()(int i, VoterType voter_type) const {
-    MainControl::Iterator iterator = get(this->begin(), this->end(), i,
-                                         voter_type);
-    if(i > states_counter){
-        return "";
-    }
-    MainControl::VoteForParticipant current = *iterator;
-    return current.participant->state();
-}
-
-bool isBigger(
+//this function compares between two votes for a participant
+bool compareVotes(
         MainControl::VoteForParticipant vote1,
         MainControl::VoteForParticipant vote2, VoterType voter_type) {
     if (voter_type == Regular) {

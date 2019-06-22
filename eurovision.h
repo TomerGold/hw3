@@ -128,8 +128,10 @@ class MainControl {
 
 public :
 
-    explicit MainControl(int max_states = MAX_PARTICIPANTS,
-                         int max_len = MAX_LEN, int max_votes_init = MAX_VOTES);
+    explicit MainControl(int max_len = MAX_LEN,
+                         int max_participants = MAX_PARTICIPANTS,
+                         int max_votes_init =
+                         MAX_VOTES);
 
     ~MainControl();
 
@@ -145,6 +147,7 @@ public :
 
     MainControl &operator-=(Participant &temp);
 
+    // used for finding the winner according to i parameter and voter_type
     const string operator()(int i, VoterType voter_type) const;
 
     friend ostream &operator<<(ostream &os, const MainControl &temp);
@@ -155,9 +158,11 @@ public :
 
     Iterator end() const;
 
-    friend bool isBigger(VoteForParticipant vote1, VoteForParticipant vote2,
-                         VoterType voter_type); //TODO friend
+    //this function compares between two votes for a participant
+    friend bool compareVotes(VoteForParticipant vote1, VoteForParticipant vote2,
+                             VoterType voter_type);
 
+    //prints the participant in voteForParticipant
     friend ostream &operator<<(ostream &os, VoteForParticipant &vote);
 
 
@@ -172,14 +177,16 @@ max_votes);
 class MainControl::Iterator {
     const MainControl *mainControl;
     int index;
-    //friend class MainControl;
 
 public:
 
     explicit Iterator(const MainControl *mainControl = nullptr,
-                      int index = 0); //TODO according to pres. supposed to be private! copy cons? defult dest?
+                      int index = 0);
+    //TODO according to pres. supposed to be private
 
     ~Iterator() = default;
+
+    Iterator(const Iterator &iterator) = default;
 
     Iterator &operator=(const Iterator &iterator) = default;
 
@@ -195,18 +202,17 @@ public:
 
     int operator-(const Iterator &i2) const;
 
-
 };
 
-
+//this template is used for finding the winner according to i and voter-type
+// (mostly used by operator ())
 template<typename T>
 T get(const T start, const T end, int i, VoterType voter_type) {
-
-    if (i < 1 || i > end - start) {
+    if (i < 1 || i > end - start) { //unusable i
         return end;
     }
     T matching_participant = start;
-    T *already_won = new T[i];
+    T *already_won = new T[i]; //array of iterators who already won
     for (int iteration_counter = 1;
          iteration_counter <= i; iteration_counter++) {
         for (T current = start; current < end; ++current) {
@@ -216,20 +222,22 @@ T get(const T start, const T end, int i, VoterType voter_type) {
             if (find(already_won, current, i)) {
                 continue;
             }
-            if (isBigger(*current, *matching_participant,
-                         voter_type)) {
+            if (compareVotes(*current, *matching_participant,
+                             voter_type)) {
                 matching_participant = current;
             }
-        }
+        } //winner for this round:
         already_won[iteration_counter - 1] = matching_participant;
         if (iteration_counter != i) {
             matching_participant = start;
         }
     }
     delete[] already_won;
-    return matching_participant;
+    return matching_participant; //winner according to i
 }
 
+//this template is used in "get" template in order to find out if a specific
+// iterator is in the array
 template<typename T>
 bool find(T *array, T iterator_to_find, int size) {
     for (int i = 0; i < size; ++i) {
