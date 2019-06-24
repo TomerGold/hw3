@@ -17,10 +17,6 @@ using std::string;
 using std::ostream;
 using std::endl;
 
-
-// it's allowed to define here any using statements, according to needs.
-// do NOT define here : using namespace std;
-
 //---------------------------------------------------
 
 enum VoterType {
@@ -159,8 +155,8 @@ public :
     Iterator end() const;
 
     //this function compares between two votes for a participant
-    friend bool compareVotes(VoteForParticipant vote1, VoteForParticipant vote2,
-                             VoterType voter_type);
+    friend bool compareVotes(VoteForParticipant &vote1, VoteForParticipant
+    &vote2, VoterType voter_type);
 
     //prints the participant in voteForParticipant
     friend ostream &operator<<(ostream &os, VoteForParticipant &vote);
@@ -182,7 +178,6 @@ public:
 
     explicit Iterator(const MainControl *mainControl = nullptr,
                       int index = 0);
-    //TODO according to pres. supposed to be private
 
     ~Iterator() = default;
 
@@ -239,7 +234,7 @@ T get(const T start, const T end, int i, VoterType voter_type) {
 //this template is used in "get" template in order to find out if a specific
 // iterator is in the array
 template<typename T>
-bool find(T *array, T iterator_to_find, int size) {
+bool find(T *array, T &iterator_to_find, int size) {
     for (int i = 0; i < size; ++i) {
         if (array[i] == iterator_to_find) {
             return true;

@@ -171,10 +171,10 @@ bool MainControl::participate(string state_name) {
 
 ostream &operator<<(ostream &os, const MainControl &eurovision) {
     if (eurovision.states_counter == 0) {//no Participates in contest yet
-        os << "{" << endl;
-        os << "Registration" << endl;
-        os << "}" << endl;
-        return os;
+        return os << "{" << endl << "Registration" << endl << "}" << endl;
+    }
+    if (eurovision.phase == Contest) { //output if printing during contest
+        return os << "{" << endl << "Contest" << endl << "}" << endl;
     }
     if (eurovision.phase == Voting) { //output for voting phase
         os << "{" << endl;
@@ -332,7 +332,6 @@ ostream &operator<<(ostream &os, MainControl::VoteForParticipant &vote) {
     return os << "[" << vote.participant->state() << "/" <<
               vote.participant->song() << "/" << vote.participant->timeLength()
               << "/" << vote.participant->singer() << "]";
-    //TODO right now this is code duplication...we should ask if there is a better way to do this.
 }
 
 ///End of MainControl class method
@@ -365,7 +364,7 @@ MainControl::Iterator &MainControl::Iterator::operator++() {
 
 bool MainControl::Iterator::operator==(const Iterator &iterator) const {
     if (((mainControl) == (iterator.mainControl)) && (index == iterator
-            .index)) { //Todo what is ==  to main control? how does it works?
+            .index)) {
         return true;
     }
     return false;
@@ -409,8 +408,8 @@ max_votes) {
 
 //this function compares between two votes for a participant
 bool compareVotes(
-        MainControl::VoteForParticipant vote1,
-        MainControl::VoteForParticipant vote2, VoterType voter_type) {
+        MainControl::VoteForParticipant &vote1,
+        MainControl::VoteForParticipant &vote2, VoterType voter_type) {
     if (voter_type == Regular) {
         if (vote1.regular_votes > vote2.regular_votes) {
             return true;
