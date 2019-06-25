@@ -306,7 +306,7 @@ MainControl &MainControl::operator+=(const Vote &current_vote) {
 const string MainControl::operator()(int i, VoterType voter_type) const {
     MainControl::Iterator iterator = get(this->begin(), this->end(), i,
                                          voter_type);
-    if (i > states_counter || i < 1) { // unusable i
+    if (iterator == this->end()) { // unusable i
         return "";
     }
     MainControl::VoteForParticipant current = *iterator;
